@@ -1,0 +1,5 @@
+SYNTHETIC EXAMPLE - not a real patient report.
+Findings:
+The right hepatic metastasis has decreased in size.
+No hydronephrosis is present.
+The urinary catheter remains in place.

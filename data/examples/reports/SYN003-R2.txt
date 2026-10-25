@@ -1,0 +1,5 @@
+SYNTHETIC EXAMPLE - not a real patient report.
+Findings:
+The left pulmonary metastasis has enlarged.
+The old right rib fracture is again noted.
+The left ureteral stent remains in place.

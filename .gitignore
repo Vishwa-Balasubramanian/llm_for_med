@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+
+# Local clinical data and derived artifacts
+data/private/
+data/processed/
+data/splits/
+output/runs/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

@@ -1,93 +1,107 @@
-# llm_for_med
+﻿# Clinical Event Detection on Longitudinal Reports
 
+Turn dated patient reports into an evidence-linked history of tumor/metastasis,
+complications, and procedures/devices.
 
+**Current stage: Phase 1 — data preparation and problem definition.**
+Project-provided de-identified reports are selected but not available yet.
+The included reports and annotations are synthetic demonstrations only.
 
-## Getting started
+## Repository structure
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+```text
+clinical_events/
+  schemas/                 Report and annotation contracts
+    report.py
+    event.py
+  data/                    One responsibility per module
+    jsonl.py               JSONL reader
+    load_reports.py        Manifest loading and source resolution
+    validate_reports.py    Metadata, dates, duplicates, source checks
+    validate_annotations.py Exact evidence and patient-link checks
+    split_patients.py      Deterministic patient-level splits
+  cli/
+    validate_dataset.py    Dataset validation command
+    create_splits.py       Split creation command
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+data/
+  examples/                Synthetic reports and draft annotations
+  templates/               Empty manifest and intake checklist
+  private/                 Real reports when available; Git-ignored
+  processed/               Derived data; Git-ignored
+  splits/                  Frozen patient assignments; Git-ignored
 
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
+docs/phase_1/              Data contract, annotation guide, evaluation, status
+output/                    Existing project architecture image
+tests/                     Data-integrity and patient-isolation checks
 ```
-cd existing_repo
-git remote add origin https://gitlab.rrze.fau.de/gi60wedo/llm_for_med.git
-git branch -M main
-git push -uf origin main
+
+The private, processed, and splits directories are created when needed.
+Phase 1 uses only the Python standard library; no third-party installs are needed.
+Later phases will introduce PDF/OCR, model, workflow, and interface dependencies.
+
+## Environment
+
+The local environment uses Python 3.14. From the repository in PowerShell:
+
+```powershell
+# Create only if .venv does not already exist:
+py -3.14 -m venv .venv
+
+# Optional activation:
+.\.venv\Scripts\Activate.ps1
 ```
 
-## Integrate with your tools
+All commands below use the environment directly, so activation is not required.
 
-* [Set up project integrations](https://gitlab.rrze.fau.de/gi60wedo/llm_for_med/-/settings/integrations)
+## Validate the example dataset
 
-## Collaborate with your team
+```powershell
+.\.venv\Scripts\python.exe -m clinical_events.cli.validate_dataset data/examples/reports.jsonl --annotations data/examples/annotations.jsonl
+```
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Expected: 9 reports, 3 patients with repeated dates, 27 draft annotations, no
+validation errors. Warnings explicitly identify synthetic data and draft labels.
+A nonzero exit code means validation failed. Passing these checks does not
+establish clinical correctness or de-identification.
 
-## Test and Deploy
+## Create patient-level splits
 
-Use the built-in continuous integration in GitLab.
+```powershell
+.\.venv\Scripts\python.exe -m clinical_events.cli.create_splits data/examples/reports.jsonl --output data/splits/synthetic-v1.json
+```
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+All reports for one patient stay together. The command refuses to overwrite an
+existing split file. Use a new versioned filename only when intentionally making
+new assignments. Three synthetic patients are enough for a software demonstration,
+not for a clinical evaluation.
 
-***
+## Run checks
 
-# Editing this README
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## When the project reports arrive
 
-## Suggestions for a good README
+1. Complete [the intake checklist](data/templates/intake_checklist.md).
+2. Place authorized files in `data/private/project-v1/reports/`.
+3. Create `data/private/project-v1/reports.jsonl` using the
+   [data contract](docs/phase_1/data_contract.md), with `is_synthetic: false`.
+4. Run validation against that manifest. Unknown dates remain unknown.
+5. Review the [annotation guide](docs/phase_1/annotation_guidelines.md) with a
+   qualified reviewer and annotate the development pilot.
+6. Freeze patient-level splits and the [evaluation plan](docs/phase_1/evaluation_plan.md).
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+PDF source existence is supported now; PDF parsing, OCR, and evidence coordinates
+are Phase 2. Exact annotation evidence checks currently require TXT sources.
 
-## Name
-Choose a self-explaining name for your project.
+## Five phases
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+1. Data collection, schemas, annotations, and evaluation design — in progress.
+2. PDF/text processing and baseline event extraction.
+3. Longitudinal linking and agent verification.
+4. Timeline application, source viewer, and incremental updates.
+5. Held-out evaluation, documentation, and final delivery.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+See [Phase 1 status](docs/phase_1/status.md) for implemented work and remaining gates.

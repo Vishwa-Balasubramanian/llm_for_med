@@ -1,0 +1,5 @@
+SYNTHETIC EXAMPLE - not a real patient report.
+Findings:
+Left iliac lymph-node metastasis is present.
+Left ureteral compression is present.
+A left ureteral stent is in place.

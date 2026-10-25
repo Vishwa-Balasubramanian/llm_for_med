@@ -1,0 +1,5 @@
+SYNTHETIC EXAMPLE - not a real patient report.
+Findings:
+A right hepatic metastasis is present.
+No hydronephrosis is present.
+A urinary catheter is in place.
